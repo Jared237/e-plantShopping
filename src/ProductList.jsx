@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux'; // Import useSelector to access Redux store
 import './ProductList.css';
 import CartItem from './CartItem';
-import { addItem } from './CartSlice'; // Import addItem action creator
+import { addItem } from './CartSlice';
 
 function ProductList({ onHomeClick }) {
     const dispatch = useDispatch();
     
-    // State to track which products are added to cart
+    // State to track which products are added to cart (local UI state)
     const [addedToCart, setAddedToCart] = useState({});
     
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false);
+
+    // Access Redux store to retrieve cart items
+    const cartItems = useSelector(state => state.cart.items);
+    
+    // Calculate total quantity of items currently in the cart
+    const calculateTotalQuantity = () => {
+        return cartItems ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0;
+    };
 
     const plantsArray = [
         {
@@ -98,9 +106,9 @@ function ProductList({ onHomeClick }) {
         }
     ];
 
-    // handleAddToCart function dispatches plant details to addItem reducer
+    // Add to Cart Functionality - Dispatch addItem action to add selected products to cart
     const handleAddToCart = (product) => {
-        // Dispatch the plant details to addItem reducer in CartSlice
+        // Initialize cart state within Redux store - dispatch addItem action
         dispatch(addItem(product));
         
         // Update local state to reflect product has been added
@@ -110,9 +118,9 @@ function ProductList({ onHomeClick }) {
         }));
         
         console.log(`${product.name} added to cart!`);
+        console.log('Total items in cart:', calculateTotalQuantity());
     };
 
-    // Rest of your component code...
     const styleObj = {
         backgroundColor: '#4CAF50',
         color: '#fff',
@@ -178,9 +186,12 @@ function ProductList({ onHomeClick }) {
                     <div>
                         <a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>Plants</a>
                     </div>
-                    <div>
+                    <div style={{ position: 'relative' }}>
                         <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
                             <h1 className='cart'>🛒</h1>
+                            {calculateTotalQuantity() > 0 && (
+                                <span className="cart-badge">{calculateTotalQuantity()}</span>
+                            )}
                         </a>
                     </div>
                 </div>
